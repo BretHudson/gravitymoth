@@ -9,7 +9,7 @@
 		<link>{{$entry.Link}}</link>
 		<description>{{$entry.Description}}</description>
 		<pubDate>{{$entry.PubDate}}</pubDate>
-		<guid isPermaLink="true">{{$entry.Guid}}</guid></item>
+		<guid isPermaLink="true">{{$entry.Guid}}</guid>
 	</item>{{end}}
 </channel>
 </rss>
