@@ -23,6 +23,7 @@
 :root {
 	--bg-color:         #FFFFFF;
 	--nav-color:        #0083B7;
+	--nav-color:        #333 !important;
 	--light-nav-color:  #9FD1E4;
 	--light-nav-color2: #DFF0F6;
 	/* TODO(bret): tint blue */
@@ -322,6 +323,14 @@ nav > a {
 	grid-template-columns: 1fr;
 	grid-template-rows: auto 1fr auto;
 }
+
+main {
+	position: relative;
+	/* background: red; */
+	padding: 0;
+	grid-column: full;
+}
+
 .banner {
 	grid-column: full;
 	background-color: var(--logo-bg);
@@ -449,11 +458,49 @@ nav > a {
 	text-align: center;
 }
 
-.subtitle h2 {
+.banner {
+	--logo-color: white;
+	padding-block: 3rem;
+	display: grid;
+	grid-template-columns: subgrid;
+	background: var(--nav-color);
+}
+
+.banner > div {
+	display: grid;
+	grid-template-columns: 4fr 3fr;
+	gap: 1rem;
+	grid-column: padding;
+}
+
+.banner img {
+	color: yellow;
+	stroke: cyan;
+}
+
+/* .banner > div > div {
+	background: #00000077;
+} */
+
+.banner .announce {
+	color: white;
+}
+
+.banner h2 {
 	font-size: 3.5rem;
-	text-align: center;
+	text-align: right;
 	text-wrap: balance;
 	padding-block: 1.5rem;
+	line-height: 1;
+	
+	border-bottom: 5px solid white;
+}
+
+.banner p {
+	margin-top: 1.5rem;
+	text-align: right;
+	text-wrap: pretty;
+	font-size: 1.125rem;
 }
 
 .rest {
@@ -1037,6 +1084,18 @@ td {
 
 .direction > h2 {
 	margin-bottom: 0.35em;
+	text-align: center;
+}
+
+.big {
+	display: grid;
+	max-width: 20rem;
+	margin-inline: auto;
+}
+
+.big > div {
+	align-self: center;
+	justify-self: center;
 	text-align: center;
 }
 
