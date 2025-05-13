@@ -2,26 +2,52 @@ package main
 
 import (
 	"fmt"
+	htmlTemplate "html/template"
+	"io/fs"
+	"io/ioutil"
 	"log"
 	"os"
-	"time"
-	"strings"
 	"sort"
-	"io/ioutil"
-	"io/fs"
+	"strings"
+	textTemplate "text/template"
+	"time"
+
 	"github.com/gomarkdown/markdown"
 )
 
 type BlogEntry struct {
-	Name string
-	Path string
+	Name    string
+	Path    string
 	Content []byte
 
-	Title string
-	Date time.Time
-	Slug string
+	Title       string
+	Date        time.Time
+	Slug        string
 	Description string
-	Thumbnail string
+	Thumbnail   string
+}
+
+type BlogEntryView struct {
+	Title string
+	Slug  string
+}
+
+type PostTemplateData struct {
+	PrevEntryId int
+	EntryId     int
+	NextEntryId int
+	Entry       BlogEntry
+	Entries     []BlogEntry
+	Date        string
+	Content     htmlTemplate.HTML
+}
+
+type RSSEntry struct {
+	Title       string
+	Link        string
+	Description string
+	PubDate     string
+	Guid        string
 }
 
 const static_dir = "static/"
@@ -30,6 +56,10 @@ const in_time_fmt = "01-02-2006 15:04 MST"
 const out_time_fmt = "Mon, 02 Jan 2006"
 const rss_time_fmt = "Mon, 02 Jan 2006 15:04:05 -0700"
 
+func generate_slug(e BlogEntry) string {
+	return "blog/" + fmt.Sprintf("%s", e.Slug)
+}
+
 func generate_redirect(bin_name string, to string) {
 	f, err := os.Create(bin_name)
 	if err != nil {
@@ -37,140 +67,73 @@ func generate_redirect(bin_name string, to string) {
 	}
 	defer f.Close()
 
-	redirect_str := fmt.Sprintf("<meta http-equiv=\"refresh\" content=\"0; URL=%s\" />", to)
+	redirect_str := fmt.Sprintf("<meta name=\"color-scheme\" content=\"light dark\"><meta http-equiv=\"refresh\" content=\"0; URL=%s\" />", to)
 	f.WriteString(redirect_str)
 }
 
-func generate_link_row(entries []BlogEntry, idx int, f *os.File) {
-	if idx > 0 {
-		prev_entry := entries[idx-1]
-		prev_str := fmt.Sprintf("<a class=\"newer-link\" href=\"%s.html\"><i class=\"fa fa-arrow-left\"></i>Newer</a>", prev_entry.Slug)
-		f.WriteString(prev_str)
-	}
-	if idx < len(entries)-1 {
-		next_entry := entries[idx+1]
-		next_str := fmt.Sprintf("<a class=\"older-link\" href=\"%s.html\">Older<i class=\"fa fa-arrow-right\"/></i></a>", next_entry.Slug)
-		f.WriteString(next_str)
-	}
-}
-
-func generate_posts(entries []BlogEntry, html_template string) {
-	chunks := make([]string, 0)
-
-	// these have to be in descending occuring order
-	tags := []string{"{{description}}", "{{unfurl}}", "{{header}}", "{{slug}}", "{{content}}", "{{slugs}}", "{{nav-foot}}"}
-
-	cur_chunk := html_template
-	for i, tag := range tags {
-		tmp := strings.Split(cur_chunk, tag)
-		if len(tmp) != 2 {
-			log.Fatalf("Template had no %s tag!\n", tag)
-		}
-
-		if i == (len(tags) - 1) {
-			chunks = append(chunks, tmp...)
-			continue
-		}
-
-		chunks = append(chunks, tmp[0])
-		cur_chunk = tmp[1]
+func generate_posts(entries []BlogEntry, html_templpath string) {
+	funcMap := textTemplate.FuncMap{
+		"generateSlug": generate_slug,
 	}
 
-	slugs := make([]string, 0)
-	for _, md := range entries {
-		slug_link := fmt.Sprintf("%s.html", md.Slug)
-		li_str := fmt.Sprintf(`<a class="slug-entry" href="%s"><li><p>%s</p></li></a>`, slug_link, md.Title)
-		slugs = append(slugs, li_str)
+	tmpl, err := htmlTemplate.New("template.html").Funcs(funcMap).ParseFiles(html_templpath)
+	if err != nil {
+		panic(err)
 	}
 
 	for i, entry := range entries {
-		bin_name := fmt.Sprintf("%s%s.html", bin_dir, entry.Slug)
+		// generate redirect page
 		if i == 0 {
-			slug_link := fmt.Sprintf("%s.html", entry.Slug)
+			slug_link := fmt.Sprintf("%s", entry.Slug)
 			headname := fmt.Sprintf("%sindex.html", bin_dir)
 			generate_redirect(headname, slug_link)
 		}
 
+		// generate blog post page using template
+		bin_name := fmt.Sprintf("%s%s.html", bin_dir, entry.Slug)
 		f, err := os.Create(bin_name)
 		if err != nil {
 			log.Fatal(err)
 		}
 		defer f.Close()
 
-		f.WriteString(chunks[0])
-
-		// Generate description
-		{
-			f.WriteString(entry.Description)
+		data := PostTemplateData{
+			PrevEntryId: i - 1,
+			EntryId:     i,
+			NextEntryId: i + 1,
+			Entry:       entry,
+			Entries:     entries,
+			Date:        entry.Date.Format(out_time_fmt),
+			Content:     htmlTemplate.HTML(markdown.ToHTML(entry.Content, nil, nil)),
 		}
 
-		f.WriteString(chunks[1])
-
-		// Generate unfurl
-		{
-			f.WriteString(`<meta property="og:type"  content="article" />`)
-
-			url_str := fmt.Sprintf(`<meta property="og:url" content="https://gravitymoth.com/blog/%s" />`, entry.Slug)
-			f.WriteString(url_str)
-
-			desc_str := fmt.Sprintf(`<meta property="og:description" content="%s" />`, entry.Description)
-			f.WriteString(desc_str)
-
-			title_str := fmt.Sprintf(`<meta property="og:title" content="%s" />`, entry.Title)
-			twitter_title_str := fmt.Sprintf(`<meta property="twitter:title" content="%s" />`, entry.Title)
-			f.WriteString(title_str)
-			f.WriteString(twitter_title_str)
-
-			image_str := fmt.Sprintf(`<meta property="og:image" content="https://gravitymoth.com/media/%s" />`, entry.Thumbnail)
-			f.WriteString(image_str)
-
-			f.WriteString(`<meta property="og:locale" content="en_US">`)
-			f.WriteString(`<meta property="og:site_name" content="Gravity Moth">`)
-			f.WriteString(`<meta property="twitter:card" content="summary">`)
+		err = tmpl.Execute(f, data)
+		if err != nil {
+			panic(err)
 		}
-
-		f.WriteString(chunks[2])
-
-		date_str := entry.Date.Format(out_time_fmt)
-		hdr_str := fmt.Sprintf("<h1>%s</h1><h5>%s</h5>", entry.Title, date_str)
-		f.WriteString(hdr_str)
-
-		f.WriteString(`<div class="link-row">`)
-		generate_link_row(entries, i, f)
-		f.WriteString(`</div>`)
-		f.WriteString(chunks[3])
-
-		slug_class := fmt.Sprintf("slug-%s", entry.Slug)
-		f.WriteString(slug_class)
-		f.WriteString(chunks[4])
-
-		html := markdown.ToHTML(entry.Content, nil, nil)
-		f.WriteString(string(html))
-		f.WriteString(chunks[5])
-
-		for j, s := range slugs {
-			if j == i {
-				li_str := fmt.Sprintf(`<a class="slug-entry selected"><li><p>%s</p></li></a>`, entry.Title)
-
-				f.WriteString(li_str)
-			} else {
-				f.WriteString(s)
-			}
-		}
-		f.WriteString(chunks[6])
-
-		generate_link_row(entries, i, f)
-
-		f.WriteString(chunks[7])
 	}
 }
 
-func generate_rss(entries []BlogEntry, rss_template string) {
-	file_chunks := strings.Split(rss_template, "{{entries}}")
-	if len(file_chunks) != 2 {
-		log.Fatal("Template had no {{entries}} tag!\n")
+func generate_rss(entries []BlogEntry, rss_templpath string) {
+	tmpl, err := textTemplate.ParseFiles(rss_templpath)
+	if err != nil {
+		panic(err)
 	}
-	chunks := []string{file_chunks[0], file_chunks[1]}
+
+	rssEntries := []RSSEntry{}
+
+	for _, entry := range entries {
+		date_str := entry.Date.Format(rss_time_fmt)
+		post_link := fmt.Sprintf("https://gravitymoth.com/blog/%s", entry.Slug)
+		rssEntry := RSSEntry{
+			Title:       entry.Title,
+			Description: entry.Description,
+			PubDate:     date_str,
+			Link:        post_link,
+			Guid:        post_link,
+		}
+		rssEntries = append(rssEntries, rssEntry)
+	}
 
 	bin_name := fmt.Sprintf("%sfeed.xml", bin_dir)
 	f, err := os.Create(bin_name)
@@ -178,22 +141,10 @@ func generate_rss(entries []BlogEntry, rss_template string) {
 		log.Fatal(err)
 	}
 	defer f.Close()
-
-	f.WriteString(chunks[0])
-
-	for i, entry := range entries {
-		date_str := entry.Date.Format(rss_time_fmt)	
-		post_link := fmt.Sprintf("https://gravitymoth.com/blog/%s", entry.Slug)
-		post_str := fmt.Sprintf(`<item><title>%s</title><link>%s</link><description>%s</description><pubDate>%s</pubDate><guid isPermaLink="true">%s</guid></item>`, entry.Title, post_link, entry.Description, date_str, post_link)
-
-		if i != 0 {
-			f.WriteString("\n\t")
-		}
-
-		f.WriteString(post_str)
+	err = tmpl.Execute(f, rssEntries)
+	if err != nil {
+		panic(err)
 	}
-
-	f.WriteString(chunks[1])
 }
 
 func main() {
@@ -258,8 +209,7 @@ func main() {
 				img = "logo_bg.png"
 			}
 
-			md := BlogEntry{Name: file.Name(), Path: static_dir, Content:
-content, Title: string(title), Date: date, Slug: string(slug), Description: string(desc), Thumbnail: string(img)}
+			md := BlogEntry{Name: file.Name(), Path: static_dir, Content: content, Title: string(title), Date: date, Slug: string(slug), Description: string(desc), Thumbnail: string(img)}
 			mds = append(mds, md)
 		} else if file.Name() == "template.html" {
 			html_template_file = file
@@ -269,33 +219,24 @@ content, Title: string(title), Date: date, Slug: string(slug), Description: stri
 	}
 
 	if html_template_file == nil {
-		log.Fatal("Couln't find html template!\n")
+		log.Fatal("Couldn't find html template!\n")
 	}
 	if rss_template_file == nil {
-		log.Fatal("Couln't find rss template!\n")
+		log.Fatal("Couldn't find rss template!\n")
 	}
 
 	_ = os.RemoveAll(bin_dir)
 	_ = os.Mkdir(bin_dir, os.ModePerm)
 
 	html_templpath := fmt.Sprintf("%s%s", static_dir, html_template_file.Name())
-	html_template, err := os.ReadFile(html_templpath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	rss_templpath := fmt.Sprintf("%s%s", static_dir, rss_template_file.Name())
-	rss_template, err := os.ReadFile(rss_templpath)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	sort.SliceStable(mds, func(i, j int) bool {
 		return mds[i].Date.After(mds[j].Date)
 	})
 
-	generate_posts(mds, string(html_template))
-	generate_rss(mds,   string(rss_template))
+	generate_posts(mds, html_templpath)
+	generate_rss(mds, rss_templpath)
 
 	fmt.Printf("site generated\n")
 }
