@@ -51,122 +51,129 @@
 				</section>
 			</div> -->
 		</header>
-		<div class="root main">
-			<section id="content">
+		<main>
+			<div class="banner">
 				<div>
-					<h2>We build tools for developers</h2>
-				</div>
-				<div class="latest-projects">
 					<div>
-						<h2>Developer Tools</h2>
-						<div class="tool-preview">
-							<img src="media/odin-landscape.png" alt="Spall Landscape">
-							<h3>Spall</h3>
-							<!-- TODO(bret): copy here - which languages does it work for? Is it language-agnostic? what is required? do we need to say "Spall" again? -->
-							<p>Profile and explore your code in Spall, designed to help you sift through billions of events</p>
-							<div class="button-column">
-								<a href="spall/spall-web">
-									<button><i class="fa-solid fa-window-maximize"></i> Use in Browser</button>
-								</a>
-								<a href="https://gravitymoth.itch.io/spall">
-									<button><i class="fa-brands fa-itch-io"></i> Buy Spall Native</button>
-								</a>
-								<div class="button-row">
-									<a href="https://discord.gg/MkAPHSWPZZ"><i class="fa-brands fa-discord"></i></a>
-								</div>
-							</div>
-						</div>
+						<h2>We build tools to empower developers</h2>
+						<p>The closer you go to the hardware, the more likely you are to need to be able to read and parse large amounts of data. There's no reason it should be obscure.</p>
 					</div>
-					<div style="display: grid">
-						<!-- <h2>???</h2> -->
-						<div style="align-self: center; justify-self: center; text-align: center;">
+					<div class="big">
+						<div>
+							<!-- TODO(bret): Make this SVG inline so we can edit its color -->
 							<img src="media/logo.svg" alt="Gravity Moth Logo" />
 							<h1 class="announce" style="font-size: 2rem">Gravity Moth</h1>
 						</div>
 					</div>
-					<div>
-						<h2>Latest Articles</h2>
-						<div class="tool-preview">
-							<div>
-								<h3><a href="#">Building The Stupid Way</a></h3>
-								<h4>Thu, 01 Aug 2024</h4>
-							</div>
-							<div>
-								<h3><a href="#">Not Fast Enough: LOD Trees</a></h3>
-								<h4>Fri, 12 May 2023</h4>
-							</div>
-							<div>
-								<h3><a href="#">Timing on x86: TSC TMI</a></h3>
-								<h4>Sun, 30 Apr 2023</h4>
-							</div>
-						</div>
-						<a href="#">Read more</a>
-					</div>
-				</div>
-				
-				<br />
-			</section>
-		</div>
-		<section class="rest">
-			<div>
-				<h2 style="padding-left: 1rem; padding-bottom: .5rem">Future Projects - Sneak Peek</h2>
-				<div class="content-highlight">
-					<div class="side-by-side">
-						<div class="image">
-							<img src="media/asm.png" alt="Highlighted Assembly">
-						</div>
-						<h3>
-							<i class="fa-solid fa-file-pen"></i>
-							Debugging Should Be Legible
-						</h3>
-						<div class="description">
-							<p>Why don't we have <b>good syntax highlighting for assembly</b>?</p>
-							<p>We use syntax highlighting in many higher-level
-							languages daily, to make it easier to <b>quickly scan</b> and <b>follow code flow</b>. It's time to bring disassemblers
-							up to speed with modern, 80s technology. Register motion matters, when things go wrong, <b>a little color
-							helps you figure out what happened, <i>fast</i></b>.</p>
-						</div>
-					</div>
-				</div>
-				<div class="content-highlight">
-					<div class="side-by-side">
-						<div class="image">
-							<img src="media/history.png" alt="Highlighted Emulator State">
-						</div>
-						<h3>
-							<i class="fa-solid fa-clock-rotate-left"></i>
-							History Matters
-						</h3>
-						<div class="description">
-							<p>When dissecting real catastrophes, inspectors build out a timeline and attempt to <b>retrace footsteps</b>.
-							Debugging code should work the same way.</p>
-							<p><b>Track</b> how your program changes registers and memory
-							as it runs, <b>save all your syscalls</b>, and <b>replay your code</b> exactly the way it failed,
-							so you can reliably <b>walk backwards</b> from the problem to find the cause.</p>
-						</div>
-					</div>
-				</div>
-				<div class="content-highlight">
-					<div class="side-by-side">
-						<div class="image" style="--image-bg-color: #22282a">
-							<img src="media/striations.png" alt="Binary as Image">
-						</div>
-						<h3>
-							<i class="fa-solid fa-shapes"></i>
-							Data Has A Shape
-						</h3>
-						<div class="description">
-							<p><b>Real data has striations, character, and personality.</b> Really understanding a problem might require <b>a
-							new way of looking</b> at your code or your dataset. </p>
-							<p>We provide the tools to <b>visualize your problem</b>
-							in a handful of new, unique ways, to help you <b>build strong intuition</b> about your problems. This is a real
-							ELF binary with large static tables of content, plainly visible when displayed
-							as a greyscale image.</p>
-						</div>
-					</div>
 				</div>
 			</div>
-		</section>
+			<div class="root main">
+				<section id="content">
+					<div class="latest-projects">
+						<div style="grid-column: 1 / span 2">
+							<h2>Featured Tool</h2>
+							<div class="tool-preview">
+								<a href="spall/"><h3>Spall</h3></a>
+								<img src="media/odin-landscape.png" alt="Spall Landscape">
+								<!-- TODO(bret): copy here - which languages does it work for? Is it language-agnostic? what is required? do we need to say "Spall" again? -->
+								<p>Profile and explore your code, designed to help you sift through billions of events</p>
+								<div class="button-column">
+									<a href="spall/spall-web">
+										<button><i class="fa-solid fa-window-maximize"></i> Use in Browser</button>
+									</a>
+									<a href="https://gravitymoth.itch.io/spall">
+										<button><i class="fa-brands fa-itch-io"></i> Buy Spall Native</button>
+									</a>
+									<div class="button-row">
+										<a href="https://discord.gg/MkAPHSWPZZ"><i class="fa-brands fa-discord"></i></a>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div>
+							<h2>Latest Articles</h2>
+							<div class="tool-preview">
+								<div>
+									<h3><a href="http://gravitymoth.localhost/blog/vertical_biz">Building The Stupid Way</a></h3>
+									<h4>Thu, 01 Aug 2024</h4>
+								</div>
+								<div>
+									<h3><a href="http://gravitymoth.localhost/blog/footprints_v1">Not Fast Enough: LOD Trees</a></h3>
+									<h4>Fri, 12 May 2023</h4>
+								</div>
+								<div>
+									<h3><a href="http://gravitymoth.localhost/blog/tsc_tmi">Timing on x86: TSC TMI</a></h3>
+									<h4>Sun, 30 Apr 2023</h4>
+								</div>
+							</div>
+							<a href="http://gravitymoth.localhost/blog">Read more</a>
+						</div>
+					</div>
+					
+					<br />
+				</section>
+			</div>
+			<section class="rest layout-three-column">
+				<div>
+					<h2 style="padding-left: 1rem; padding-bottom: .5rem">Future Projects - Sneak Peek</h2>
+					<div class="content-highlight">
+						<div class="side-by-side">
+							<div class="image">
+								<img src="media/asm.png" alt="Highlighted Assembly">
+							</div>
+							<h3>
+								<i class="fa-solid fa-file-pen"></i>
+								Debugging Should Be Legible
+							</h3>
+							<div class="description">
+								<p>Why don't we have <b>good syntax highlighting for assembly</b>?</p>
+								<p>We use syntax highlighting in many higher-level
+								languages daily, to make it easier to <b>quickly scan</b> and <b>follow code flow</b>. It's time to bring disassemblers
+								up to speed with modern, 80s technology. Register motion matters, when things go wrong, <b>a little color
+								helps you figure out what happened, <i>fast</i></b>.</p>
+							</div>
+						</div>
+					</div>
+					<div class="content-highlight">
+						<div class="side-by-side">
+							<div class="image">
+								<img src="media/history.png" alt="Highlighted Emulator State">
+							</div>
+							<h3>
+								<i class="fa-solid fa-clock-rotate-left"></i>
+								History Matters
+							</h3>
+							<div class="description">
+								<p>When dissecting real catastrophes, inspectors build out a timeline and attempt to <b>retrace footsteps</b>.
+								Debugging code should work the same way.</p>
+								<p><b>Track</b> how your program changes registers and memory
+								as it runs, <b>save all your syscalls</b>, and <b>replay your code</b> exactly the way it failed,
+								so you can reliably <b>walk backwards</b> from the problem to find the cause.</p>
+							</div>
+						</div>
+					</div>
+					<div class="content-highlight">
+						<div class="side-by-side">
+							<div class="image">
+								<img src="media/striations.png" alt="Binary as Image">
+							</div>
+							<h3>
+								<i class="fa-solid fa-shapes"></i>
+								Data Has A Shape
+							</h3>
+							<div class="description">
+								<p><b>Real data has striations, character, and personality.</b> Really understanding a problem might require <b>a
+								new way of looking</b> at your code or your dataset. </p>
+								<p>We provide the tools to <b>visualize your problem</b>
+								in a handful of new, unique ways, to help you <b>build strong intuition</b> about your problems. This is a real
+								ELF binary with large static tables of content, plainly visible when displayed
+								as a greyscale image.</p>
+							</div>
+						</div>
+					</div>
+				</div>
+			</section>
+		</main>
 		<footer>
 			<div>&copy; 2025 Gravity Moth</div>
 		</footer>

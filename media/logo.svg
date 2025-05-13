@@ -16,14 +16,14 @@
 		cx="13"
 		id="circle"
 		fill="none"
-		stroke="#0083b7"
+		stroke="var(--logo-color, #0083b7)"
 		stroke-width="0.4"
 	/>
 	<path
 		id="leftchevron"
 		d="M 1,1 7,7 1,13"
 		fill="none"
-		stroke="#0083b7"
+		stroke="var(--logo-color, #0083b7)"
 		stroke-width="0.4"
 		stroke-linecap="butt"
 	/>
@@ -31,7 +31,7 @@
 		id="rightchevron"
 		d="M 25,1 19,7 25,13"
 		fill="none"
-		stroke="#0083b7"
+		stroke="var(--logo-color, #0083b7)"
 		stroke-width="0.4"
 		stroke-linecap="butt"
 	/>
