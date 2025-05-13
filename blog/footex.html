@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="color-scheme" content="light dark">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, shrink-to-fit=no">
+		<meta name="theme-color" content="#0083B7">
+		<meta name="description" content="How I Learned to Stop Locking and Love the Race Condition">
+
+		<meta property="og:type"  content="article" />
+		<meta property="og:url" content="https://gravitymoth.com/blog/footex" />
+		<meta property="og:description" content="How I Learned to Stop Locking and Love the Race Condition" />
+		<meta property="og:title" content="Futexes and You" />
+		<meta property="twitter:title" content="Futexes and You" />
+		<meta property="og:image" content="https://gravitymoth.com/media/Futexes and You" />
+		<meta property="og:locale" content="en_US">
+		<meta property="og:site_name" content="Gravity Moth">
+		<meta property="twitter:card" content="summary">
+
+		<base href="../" />
+		<link rel="stylesheet" href="./style.css" />
+		<link rel="shortcut icon" type="image/png" href="media/favicon.png">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Fira+Sans&family=Fira+Code&family=Montserrat&display=swap" rel="stylesheet">
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<link rel="alternate" type="application/rss+xml" title="RSS Feed for GravityMoth Blog" href="https://gravitymoth.com/blog/feed.xml" />
+
+		<script src="index.js"></script>
+
+		<title>Gravity Moth</title>
+	</head>
+	<body class="layout-three-column">
+		<header>
+			<nav>
+				<a class="nav-link top"       href="./">Gravity Moth</a>
+				<div class="nav-entries">
+					<a class="nav-link entry" href="spall">Spall</a>
+					<a class="nav-link entry" href="blog">Blog</a>
+					<button class="nav-link menu" onClick="toggleMenu();">
+						<i class="fa fa-bars" aria-hidden="true"></i>
+					</button>
+				</div>
+			</nav>
+			<div id="dropdown-menu">
+				<a class="dropdown entry" href="spall">Spall</a>
+				<a class="dropdown entry" href="blog">Blog</a>
+			</div>
+		</header>
+		<div class="root blog">
+			<section id="header">
+				<h1>Futexes and You</h1><h5>Fri, 13 Jan 2023</h5>
+			</section>
+			<section id="nav-header" class="link-row">
+				<a class="newer-link" href="%s"><i class="fa fa-arrow-left"></i>Newer</a>
+				<a class="older-link" href="%s">Older<i class="fa fa-arrow-right"/></i></a>
+			</section>
+			<section id="content" class="slug-footex"><p>So, first things first, threading is <em>tricky</em>, and we don&rsquo;t make it easy for devs trying to learn.
+There&rsquo;s a ton of names floating around for thread-primitives, many of which are confusing.
+I&rsquo;ll start by defining terms for this article, to help keep things straight.</p>
+
+<h2>Defining Terms</h2>
+
+<p><strong>Mutexes (Locks)</strong> are a way to ensure only <em>one</em> thread can run some section of code, or touch some resource for a period of time.
+If you use pthreads, you might use a <code>pthread_mutex</code>, or for MSVC, a <code>CriticalSection</code> can be used to cover the same need.</p>
+
+<p><strong>Condition Variables</strong> are used for data signalling with locking, often used for managing thread pools. All threadpool workers might
+sleep on a condition variable, and when work is pushed the workers can be woken up sequentially, getting an exclusive lock to grab
+a task from the pool.</p>
+
+<p>So, what&rsquo;s a <strong>Futex</strong> then? Futexes are a very handy thread primitive, provided by most major kernels (Windows, Linux, OSX, BSDs).
+We&rsquo;ll get into it with some examples.</p>
+
+<h2>Futexes For Great Good</h2>
+
+<p>We&rsquo;re going to use C11 atomics in x86-land, because they keep things on the dev-side <em>relatively</em> simple.</p>
+
+<h3>Ready to Go? Futex Flags</h3>
+
+<p>Let&rsquo;s start with a ready flag!
+These can be handy for making threads wait after start up, so that main has some time to pass them all things to do.</p>
+
+<p>A few things to know before we get into the code,
+<code>futex_wait(a, b)</code> is a &ldquo;mr.kernel, check my assumptions please&rdquo; syscall.
+If your assumptions about variable state are correct when the kernel checks, it will put your thread to sleep, ready to be woken by another thread in the future.
+In pseudocode, the kernel does something something vaguely like this.</p>
+
+<pre><code>if a == b {
+	sleep_until_woken()
+}
+return
+</code></pre>
+
+<p>In practice, futexes on many platforms can wake up unexpectedly, so you have to catch/retry if the value they get is not what you&rsquo;re expecting.
+For these examples however, we&rsquo;ll pretend <code>futex_wait</code> handles that for us.</p>
+
+<p><code>futex_broadcast(a)</code> wakes up all the threads sleeping on address a.</p>
+
+<p>Ok, here we go:</p>
+
+<pre><code>void *thread_worker(void *args) {
+	int32_t *ready = (int32_t *)args;
+
+	printf(&quot;Checking to see if main is ready yet\n&quot;);
+	futex_wait(ready, 0);
+
+	printf(&quot;Doing thread things now!\n&quot;);
+	for (int i = 0; i &lt; 5; i++) {
+		printf(&quot;thread-work %d\n&quot;, i);
+	}
+
+	return NULL;
+}
+
+int main(int argc, char **argv) {
+	_Atomic int32_t ready = 0;
+
+	// Spin up all the threads first
+	Thread t1, t2, t3;
+	t1 = thread_create(thread_worker, &amp;ready);
+	t2 = thread_create(thread_worker, &amp;ready);
+	t3 = thread_create(thread_worker, &amp;ready);
+
+	printf(&quot;Doing fake work in main to prepare!\n&quot;);
+	for (int i = 0; i &lt; 10; i++) {
+		printf(&quot;pre-work %d\n&quot;, i);
+	}
+
+	// Ok, we're ready to go!
+	ready++;
+	futex_broadcast(&amp;ready);
+
+	thread_end(t1);
+	thread_end(t2);
+	thread_end(t3);
+
+	return 0;
+}
+</code></pre>
+
+<p>Typically, you&rsquo;d use a condition variable / conditional wait for this, but due to the way that API is
+designed, it&rsquo;s not particularly efficient. You don&rsquo;t want to have to manage an unused mutex with your condition, all you really want is a wait condition and a trigger.</p>
+
+<h3>Futex-Mutex: Lock it Down</h3>
+
+<p>On to the next fun exercise, building a lock!
+Locks are built out of two new important parts: <code>atomic_compare_exchange_strong</code> and <code>futex_signal</code>.</p>
+
+<p><code>atomic_compare_exchange_strong(a, b, c)</code> attempts to atomically swap a with c, if a == b. By swapping in <code>locked</code>(1), or <code>unlocked</code>(0), you ensure only that one thread can grab or release the lock at a time.
+(this is sometimes referred to as compare-and-swap)
+(on x86, it compiles down to <code>cmpxchg</code> with the <code>lock</code> prefix)</p>
+
+<p><code>futex_signal(a)</code> wakes up only 1 thread sleeping on the lock (a).</p>
+
+<p>Meat and potatoes time:</p>
+
+<pre><code>typedef _Atomic int32_t Mutex;
+
+void mutex_lock(Mutex *lock) {
+	int32_t locked   = 1;
+	int32_t unlocked = 0;
+
+	for (;;) {
+		bool ok = atomic_compare_exchange_strong(lock, &amp;unlocked, locked);
+		if (ok) {
+			return;
+		}
+
+		futex_wait(lock, locked);
+	}
+}
+
+void mutex_unlock(Mutex *lock) {
+	int32_t locked   = 1;
+	int32_t unlocked = 0;
+
+	bool ok = atomic_compare_exchange_strong(lock, &amp;locked, unlocked);
+	if (!ok) {
+		printf(&quot;Double unlock?\n&quot;);
+		exit(1);
+	}
+
+	futex_signal(lock);
+}
+</code></pre>
+
+<p>The <code>futex_wait</code> in this example makes use of the kernel&rsquo;s atomic assumption check, so that it doesn&rsquo;t get stuck in a sleep if the lock is unlocked between when it tried to lock and went to sleep.</p>
+
+<p>Lock-building strategies vary wildly depending on workload, you don&rsquo;t always want to hop right into the futex <em>right</em> after a failed compare-and-swap.
+If your lock is wrapped around a <em>very</em> cheap operation, a spin-lock that turns into a futex-lock after a few tries can give you a big win.
+(A spin-lock runs the compare-and-swap in a while-loop, trying over and over again to grab the lock)</p>
+
+<h2>Fancy Tricks with Race Conditions</h2>
+
+<p>I used futexes in a work-stealing threadpool I wrote for the <a href="https://github.com/odin-lang/Odin">Odin</a> compiler, to help it scale better for many-core machines.</p>
+
+<p>One of the clever tricks there, I use an atomic int to track remaining tasks in the pool, and then use a futex() to both put the thread to sleep if there&rsquo;s really no
+more work, or wake up immediately if a new task right after my check came back empty. To make it work properly I leverage a race condition, trading a <em>little</em> bit of efficiency
+when the pool is nearly dry, for more throughput when the pool is saturated. Defining constraints for your problem can be a <em>huge</em> win for performance and simplicity,
+and when dealing with threads, simplicity is critical.</p>
+
+<h3>A Few Constraints</h3>
+
+<ul>
+<li><strong>Main must participate in the work</strong>
+
+<ul>
+<li>Debugging task bugs gets way easier if you can shut off all child threads, run the pool&rsquo;s work on only the main thread, and still hit most of the threadpool&rsquo;s code.</li>
+</ul></li>
+<li><strong>Workers can only push tasks to their own queues</strong>
+
+<ul>
+<li>Threads always know the max number of active tasks in their queues, so they won&rsquo;t sleep before it&rsquo;s all finished</li>
+</ul></li>
+<li><strong>All threads except main can steal tasks</strong>
+
+<ul>
+<li>Main doesn&rsquo;t <em>need</em> to steal, this simplifies main&rsquo;s runner a little.</li>
+</ul></li>
+<li><strong>The worker doing the last task in the pool <em>must</em> try to wake main</strong>
+
+<ul>
+<li>If the thread with the last task doesn&rsquo;t wake main, and main didn&rsquo;t do the last task, your program will never finish</li>
+</ul></li>
+<li><strong>Any time new work gets added to any queue, threads get a wake-up signal</strong>
+
+<ul>
+<li>This lets sleeping threads know that &ldquo;hey, you might have work to steal!&rdquo;</li>
+</ul></li>
+</ul>
+
+<p><a href="https://github.com/colrdavidson/workpool/blob/main/pool.h#L313">Threadpool code to dig through</a></p>
+
+<p>Spot the race condition in the code? It&rsquo;s a little tricky!</p>
+
+<p>There&rsquo;s no guarantee that threads will be woken up when new tasks get added. If threads are done with their own tasks and done stealing, but not yet asleep when the signal comes in,
+they <em>may</em> go to sleep when they <em>could</em> have stolen a task. That only happens when there&rsquo;s not quite enough work to do though, so it&rsquo;s a little loss in efficiency
+(work is more serial than it could be), to avoid locking and unlocking every time I check or adjust the remaining task count. In practice for Odin, tasks are typically expensive enough
+and adding new tasks takes long enough that this very rarely occurs. Even when we hit the race condition, all work gets done, it just takes a little longer.</p>
+
+<h2>References</h2>
+
+<p>Ok, now for a pile of papers and cool things using them.</p>
+
+<ul>
+<li>Initial work from the <a href="https://www.kernel.org/doc/ols/2002/ols2002-pages-479-495.pdf">2002 Ottawa Linux Symposium</a></li>
+<li>For <em>recursive</em> mutexes and optimization, Ulrich talks about tricky bugs in his <a href="https://www.akkadia.org/drepper/futex.pdf">paper</a></li>
+<li>More musing on futexes and drepper&rsquo;s work lives over at <a href="http://locklessinc.com/articles/mutex_cv_futex/">locklessinc</a></li>
+</ul>
+</section>
+			<section id="sidebar">
+				<ul>
+					<a class="slug-entry" href="blog/vertical_biz"><li><p>Building The Stupid Way</p></li></a>
+					<a class="slug-entry" href="blog/footprints_v1"><li><p>Not Fast Enough: LOD Trees</p></li></a>
+					<a class="slug-entry" href="blog/tsc_tmi"><li><p>Timing on x86: TSC TMI</p></li></a>
+					<a class="slug-entry" href="blog/footex"><li><p>Futexes and You</p></li></a>
+					<a class="slug-entry" href="blog/missinglinux1"><li><p>The Missing Linux Manual Pt 1</p></li></a>
+					<a class="slug-entry" href="blog/dataviz"><li><p>Inspecting Data With Your Eyes</p></li></a>
+					<a class="slug-entry" href="blog/dnsdecode"><li><p>DNS Domain Name Decoding</p></li></a>
+					<a class="slug-entry" href="blog/dwarfsections"><li><p>DWARF Section Breakdown</p></li></a>
+					<a class="slug-entry" href="blog/firstentry"><li><p>Starting a Blog</p></li></a></ul>
+			</section>
+			<section id="nav-footer" class="link-row">
+				<a class="newer-link" href="%s"><i class="fa fa-arrow-left"></i>Newer</a>
+				<a class="older-link" href="%s">Older<i class="fa fa-arrow-right"/></i></a>
+			</section>
+		</div>
+		<footer>
+			<div>&copy; 2025 Gravity Moth</div>
+		</footer>
+	</body>
+</html>
