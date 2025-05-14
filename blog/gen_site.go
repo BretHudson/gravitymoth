@@ -56,6 +56,11 @@ const in_time_fmt = "01-02-2006 15:04 MST"
 const out_time_fmt = "Mon, 02 Jan 2006"
 const rss_time_fmt = "Mon, 02 Jan 2006 15:04:05 -0700"
 
+
+const templates_dir = "templates/"
+const blog_post_template_name = "blog_post.html"
+const rss_template_name = "rss.xml"
+
 func generate_slug(e BlogEntry) string {
 	return "blog/" + fmt.Sprintf("%s", e.Slug)
 }
@@ -76,7 +81,7 @@ func generate_posts(entries []BlogEntry, html_templpath string) {
 		"generateSlug": generate_slug,
 	}
 
-	tmpl, err := htmlTemplate.New("template.html").Funcs(funcMap).ParseFiles(html_templpath)
+	tmpl, err := htmlTemplate.New(blog_post_template_name).Funcs(funcMap).ParseFiles(html_templpath)
 	if err != nil {
 		panic(err)
 	}
@@ -147,14 +152,12 @@ func generate_rss(entries []BlogEntry, rss_templpath string) {
 	}
 }
 
-func main() {
+func process_blog_posts() []BlogEntry {
 	files, err := ioutil.ReadDir(static_dir)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	var html_template_file fs.FileInfo = nil
-	var rss_template_file fs.FileInfo = nil
+	
 	mds := make([]BlogEntry, 0)
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".blg") {
@@ -211,31 +214,51 @@ func main() {
 
 			md := BlogEntry{Name: file.Name(), Path: static_dir, Content: content, Title: string(title), Date: date, Slug: string(slug), Description: string(desc), Thumbnail: string(img)}
 			mds = append(mds, md)
-		} else if file.Name() == "template.html" {
-			html_template_file = file
-		} else if file.Name() == "rss_template.xml" {
+		}
+	}
+	
+	return mds
+}
+
+func main() {
+	// Process templates
+	templates, err := ioutil.ReadDir(templates_dir)
+	if err != nil {
+		log.Fatal(err)
+	}
+	
+	var blog_post_template_file fs.FileInfo = nil
+	var rss_template_file fs.FileInfo = nil
+	for _, file := range templates {
+		switch file.Name() {
+		case blog_post_template_name:
+			blog_post_template_file = file
+		case rss_template_name:
 			rss_template_file = file
 		}
 	}
-
-	if html_template_file == nil {
-		log.Fatal("Couldn't find html template!\n")
+	
+	if blog_post_template_file == nil {
+		log.Fatal("Couldn't find blog-post template!\n")
 	}
 	if rss_template_file == nil {
 		log.Fatal("Couldn't find rss template!\n")
 	}
+	
+	blog_post_templpath := fmt.Sprintf("%s%s", templates_dir, blog_post_template_file.Name())
+	rss_templpath := fmt.Sprintf("%s%s", templates_dir, rss_template_file.Name())
+	
+	// Process blog posts
+	mds := process_blog_posts()
 
 	_ = os.RemoveAll(bin_dir)
 	_ = os.Mkdir(bin_dir, os.ModePerm)
-
-	html_templpath := fmt.Sprintf("%s%s", static_dir, html_template_file.Name())
-	rss_templpath := fmt.Sprintf("%s%s", static_dir, rss_template_file.Name())
 
 	sort.SliceStable(mds, func(i, j int) bool {
 		return mds[i].Date.After(mds[j].Date)
 	})
 
-	generate_posts(mds, html_templpath)
+	generate_posts(mds, blog_post_templpath)
 	generate_rss(mds, rss_templpath)
 
 	fmt.Printf("site generated\n")
