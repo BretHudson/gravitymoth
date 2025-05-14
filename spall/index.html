@@ -24,7 +24,10 @@
 		<link rel="preconnect" href="https://fonts.googleapis.com">
 		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 		<link href="https://fonts.googleapis.com/css2?family=Fira+Sans&family=Fira+Code&family=Montserrat&display=swap" rel="stylesheet">
-		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/brands.min.js"></script>
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/fontawesome.min.js"></script>
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/regular.min.js"></script>
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/solid.min.js"></script>
 		<link rel="alternate" type="application/rss+xml" title="RSS Feed for GravityMoth Blog" href="https://gravitymoth.com/blog/feed.xml" />
 
 		<script src="index.js"></script>
@@ -57,38 +60,49 @@
 				<!-- <img src="media/odin-landscape.png" alt="Spall Landscape"> -->
 			</section>
 			<section id="content" class="spall-landing">
-				<div class="spall-grid">
-					<div class="direction">
-						<h2>Free Web Version</h2>
-						<a href="spall/spall-web" class="web-button">
-							<img src="media/fib-funcs.png" alt="Spall Mini-Logo">
-							<p>Check out <span>Spall Web</span> - 10x faster than competitors (like <code>chrome://tracing</code>)</p>
-						</a>
-					</div>
-
-					<div class="direction">
-						<h2>Full Native Version</h2>
-						<div class="web-button">
-							<p class="pre-spall-link">Need bigger traces, or more data about your data?<br />Check out the native version on <a href="https://gravitymoth.itch.io/spall">itch.io</a></p>
-							<iframe class="spall-itch-link" title="Itch.io Store" frameborder="0" src="https://itch.io/embed/2068412?bg_color=181A1B&amp;fg_color=ffffff&amp;link_color=0083B7&amp;border_color=454748" width="100%" height="auto"><a href="https://gravitymoth.itch.io/spall">Spall-Native</a></iframe>
-						</div>
-					</div>
+				<div class="ctas">
+					<a class="cta-button primary" href="spall/spall-web"><i class="fa-solid fa-link"></i> Use Web Version</a>
+					<a class="cta-button secondary" href="https://gravitymoth.itch.io/spall"><i class="fa-solid fa-download"></i> Buy Native Version</a>
 				</div>
-				
 				<section>
 					<div class="features row">
 						<div class="feature">
-							<i></i>
+							<span class="icon">
+								<!-- <i class="fa-solid fa-hourglass"></i>
+								<i class="fa-solid fa-hourglass-start"></i> -->
+								<i class="fa-solid fa-hourglass-half"></i>
+								<!-- <i class="fa-solid fa-hourglass-end"></i> -->
+							</span>
 							<h3>No Waiting</h3>
 							<p>Spall is optimized to run <i>fast</i>. Easily load and explore huge traces (100 GB+) at 60 fps.</p>
 						</div>
 						<div class="feature">
-							<i></i>
+							<span class="icon">
+								<i class="fa-solid fa-business-time"></i>
+								<!-- <i class="fa-solid fa-arrows-rotate"></i>
+								<i class="fa-solid fa-arrows-spin"></i>
+								<i class="fa-solid fa-wand-sparkles"></i> -->
+							</span>
 							<h3>Automatic Tracing</h3>
 							<p>Paid Feature.</p>
 						</div>
 						<div class="feature">
-							<i></i>
+							<span class="icon">
+								<!-- <i class="fa-solid fa-folder-tree"></i>
+								<i class="fa-solid fa-bars-progress"></i>
+								<i class="fa-solid fa-list-check"></i>
+								<i class="fa-solid fa-timeline"></i>
+								<i class="fa-solid fa-scale-balanced"></i>
+								<i class="fa-solid fa-sitemap"></i>
+								<i class="fa-solid fa-person-digging"></i>
+								<i class="fa-solid fa-hands-praying"></i>
+								<i class="fa-solid fa-face-smile"></i>
+								<i class="fa-solid fa-face-smile-beam"></i>
+								<i class="fa-solid fa-face-laugh-beam"></i>
+								<i class="fa-solid fa-square-check"></i>
+								<i class="fa-solid fa-circle-check"></i> -->
+								<i class="fa-solid fa-thumbs-up"></i>
+							</span>
 							<h3>Better Workflow</h3>
 							<p>No need to fish through 15 nested pop-up boxes. Useful stats are readily exposed in the UI.</p>
 						</div>
@@ -105,7 +119,7 @@
 						</div>
 						
 						<div class="feature">
-							<i></i>
+							<img src="http://gravitymoth.localhost/media/fib-funcs.png" />
 							<div>
 								<h3>Use In Your Browser</h3>
 								<p>Need to use Spall in a pinch? Just go to the web version, which is 10x faster than competitors like <code>chrome://tracing</code>.</p>
@@ -121,14 +135,36 @@
 					</div>
 				</section>
 				
-				<div class="direction down">
-					<h2>Want to chat about it, or share a neat looking trace?</h2>
-					<p>Hop over to the <a href="https://discord.gg/MkAPHSWPZZ">Discord</a></p>
-				</div>
+				<div class="spall-grid">
+					<div class="direction">
+						<h2>Free Web Version</h2>
+						<a href="spall/spall-web" class="web-button">
+							<img src="media/fib-funcs.png" alt="Spall Mini-Logo">
+							<p>Check out <span>Spall Web</span> - 10x faster than competitors (like <code>chrome://tracing</code>)</p>
+						</a>
+					</div>
 
-				<div class="direction down">
-					<h2>Have an idea for a feature, or need help with a bug?</h2>
-					<p>Submit issues and feature requests for the <a href="https://github.com/colrdavidson/spall-web/issues">web</a> or <a href="https://github.com/colrdavidson/spall-native-issues">native</a> versions on GitHub</p>
+					<div class="direction">
+						<h2>Full Native Version</h2>
+						<div class="web-button">
+							<iframe class="spall-itch-link" title="Itch.io Store" frameborder="0" src="https://itch.io/embed/2068412?border_width=3&amp;bg_color=181A1B&amp;fg_color=ffffff&amp;link_color=0083B7&amp;border_color=454748" width="100%" height="auto"><a href="https://gravitymoth.itch.io/spall">Spall-Native</a></iframe>
+							
+							<p class="pre-spall-link">Need bigger traces, or more data about your data?<br />Check out the native version on <a href="https://gravitymoth.itch.io/spall">itch.io</a></p>
+						</div>
+					</div>
+				</div>
+				
+				<div class="final-ctas">
+					<div>
+						<h2>Have an idea for a feature, or need help with a bug?</h2>
+						<p>Submit issues and feature requests for the <a href="https://github.com/colrdavidson/spall-web/issues">web</a> or <a href="https://github.com/colrdavidson/spall-native-issues">native</a> versions on GitHub</p>
+						<h2>Or view the source code!</h2>
+						<p>The web version of Spall is 100% open-source: <a href="https://github.com/colrdavidson/spall-web"><i class="fa-brands fa-github"></i> Source Code</a></p>
+					</div>
+					<div>
+						<h2>Discord</h2>
+						<p>Join our <a href="https://discord.gg/MkAPHSWPZZ">Discord</a> community to chat about the software or share a neat looking trace!</p>
+					</div>
 				</div>
 			</section>
 		</div>

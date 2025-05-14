@@ -1068,7 +1068,53 @@ td {
 }
 
 .spall-itch-link {
-	max-width: 552px;
+	/* max-width: 552px; */
+	/* border: 1px solid #454748; */
+	/* border-radius: .5rem; */
+}
+
+.ctas {
+	display: flex;
+	gap: 1rem;
+	justify-content: center;
+	margin-bottom: 2rem;
+}
+
+.cta-button {
+	display: inline-block;
+	background: var(--button-bg-color);
+	color: var(--button-fg-color);
+	padding: .75rem 1.25rem;
+	text-decoration: none;
+	border-radius: 10ex; /* 10ex = perfect pill shape */
+	&.primary {
+		--button-bg-color: var(--nav-off-color);
+		--button-fg-color: white;
+	}
+	&.secondary {
+		--button-bg-color: var(--nav-color);
+		--button-fg-color: white;
+	}
+	&.tertiary {
+		--button-bg-color: lime;
+		--button-bg-color: var(--off-color);
+		--button-fg-color: white;
+	}
+	&:is(:hover, :focus-visible) {
+		opacity: .7;
+	}
+}
+
+.final-ctas {
+	display: grid;
+	grid-template-columns: 2fr 1fr;
+	gap: 1rem;
+}
+
+.final-ctas > div {
+	background: var(--off-color);
+	border-radius: .75rem;
+	padding: 1rem;
 }
 
 .spall-grid {
@@ -1090,12 +1136,16 @@ td {
 	background: var(--nav-color);
 }
 
-.feature > i {
+.fa {
+	display: none;
+}
+
+.feature .icon {
 	display: inline-block;
-	width: 3rem;
-	aspect-ratio: 1 / 1;
-	background: currentColor;
-	border-radius: 50%;
+	font-size: 3rem;
+	color: #e3e3e3;
+	/* background: currentColor; */
+	/* border-radius: 50%; */
 	margin-bottom: .5rem;
 }
 
@@ -1114,13 +1164,18 @@ td {
 
 .features.row {
 	grid-template-columns: repeat(3, 1fr);
+	.feature p {
+		/* color: var(--solarized-92); */
+	}
 }
 
 .features.column {
+	--large-col: 3fr;
+	--small-col: 2fr;
 	.feature {
 		display: grid;
-		gap: 2rem;
-		grid-template-columns: 3fr 2fr;
+		gap: 3rem;
+		grid-template-columns: var(--large-col) var(--small-col);
 		grid-template-areas: 'text image';
 		text-align: left;
 		align-items: center;
@@ -1143,21 +1198,21 @@ td {
 	}
 	
 	.feature:nth-child(even) {
-		grid-template-columns: 2fr 3fr;
+		grid-template-columns: var(--small-col) var(--large-col);
 		grid-template-areas: 'image text';
-	}
-	
-	.feature i {
-		grid-area: image;
 	}
 	
 	.feature > div {
 		grid-area: text;
 	}
 	
-	.feature i {
+	.feature i, .feature img {
+		background: currentColor;
+		border: 2px solid currentColor;
+		object-fit: cover;
+		grid-area: image;
 		width: 100%;
-		aspect-ratio: 16 / 9;
+		aspect-ratio: 16 / 10;
 		border-radius: .75rem;
 	}
 }
@@ -1165,6 +1220,11 @@ td {
 .direction {
 	box-sizing: border-box;
 	padding-bottom: 0.75em;
+}
+
+.direction:not(.down) {
+	display: grid;
+	grid-template-rows: auto 1fr;
 }
 
 .direction:not(.down) > h2 {
