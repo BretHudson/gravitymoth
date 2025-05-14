@@ -341,11 +341,16 @@ main {
 }
 
 #header {
+	grid-area: header;
+	background: var(--nav-color)
+}
+
+#banner {
+	padding-inline: 1em;
 	display: flex;
 	flex-direction: column;
 	justify-content: flex-end;
 	position: relative;
-	grid-area: header;
 	margin-top: 1.5em;
 	/* margin-bottom: -0.5em; */
 	background-image: url('media/odin-landscape.png');
@@ -358,7 +363,7 @@ main {
 	border: 5px solid var(--off-color);
 }
 
-#header::before {
+#banner::before {
 	content: '';
 	position: absolute;
 	inset-inline: 0;
@@ -367,25 +372,25 @@ main {
 	background: linear-gradient(#00000000, var(--off-color) 70%);
 }
 
-#header * {
+#banner * {
 	z-index: 1;
 }
 
-#header h1 {
+#banner h1 {
 	text-transform: uppercase;
 }
 
-#header > h2 {
+#banner > h2 {
 	font-size: 12pt;
 }
 
-.header-line {
+.banner-line {
 	display: flex;
 	flex-direction: row;
 	align-items: center;
 	margin-bottom: 0.25rem;
 }
-.header-line > h1 {
+.banner-line > h1 {
 	font-size: 2rem;
 	margin-right: 0.25em;
 	margin-bottom: 0;
@@ -1071,6 +1076,16 @@ td {
 	/* max-width: 552px; */
 	/* border: 1px solid #454748; */
 	/* border-radius: .5rem; */
+}
+
+.screenshot-wrapper {
+	text-align: center;
+}
+
+.screenshot {
+	display: inline-block;
+	width: 60%;
+	margin-inline: auto;
 }
 
 .ctas {
