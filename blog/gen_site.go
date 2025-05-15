@@ -15,6 +15,17 @@ import (
 	"github.com/gomarkdown/markdown"
 )
 
+type SiteTemplate struct {
+	File fs.FileInfo
+	Path string
+}
+
+type SiteTemplates struct {
+	Index    SiteTemplate
+	BlogPost SiteTemplate
+	RSS      SiteTemplate
+}
+
 type BlogEntry struct {
 	Name    string
 	Path    string
@@ -45,6 +56,7 @@ type PostTemplateData struct {
 type RSSEntry struct {
 	Title       string
 	Link        string
+	Slug        string
 	Description string
 	PubDate     string
 	Guid        string
@@ -52,17 +64,112 @@ type RSSEntry struct {
 
 const static_dir = "static/"
 const bin_dir = "docs/"
+const bin2_dir = "pages/"
 const in_time_fmt = "01-02-2006 15:04 MST"
 const out_time_fmt = "Mon, 02 Jan 2006"
 const rss_time_fmt = "Mon, 02 Jan 2006 15:04:05 -0700"
 
-
 const templates_dir = "templates/"
+const index_template_name = "index.html"
 const blog_post_template_name = "blog_post.html"
 const rss_template_name = "rss.xml"
 
 func generate_slug(e BlogEntry) string {
 	return "blog/" + fmt.Sprintf("%s", e.Slug)
+}
+
+type FutureProject struct {
+	Title       string
+	Image       string
+	ImageAlt    string
+	Icon        string
+	Description htmlTemplate.HTML
+}
+
+type HomeData struct {
+	BlogPosts []RSSEntry
+	Projects  []FutureProject
+}
+
+func generate_pages(entries []BlogEntry, templ SiteTemplate) {
+	funcMap := textTemplate.FuncMap{
+		"generateSlug": generate_slug,
+	}
+
+	tmpl, err := htmlTemplate.New(index_template_name).Funcs(funcMap).ParseFiles(templ.Path)
+	if err != nil {
+		panic(err)
+	}
+
+	rssEntries := []RSSEntry{}
+
+	for _, entry := range entries {
+		date_str := entry.Date.Format(out_time_fmt)
+		rssEntry := RSSEntry{
+			Title:       entry.Title,
+			Description: entry.Description,
+			PubDate:     date_str,
+			Slug:        generate_slug(entry),
+		}
+		rssEntries = append(rssEntries, rssEntry)
+
+		if len(rssEntries) >= 3 {
+			break
+		}
+	}
+
+	futureProjects := []FutureProject{
+		{
+			Title:    "Debugging Should Be Legible",
+			Icon:     "fa-solid fa-file-pen",
+			Image:    "media/asm.png",
+			ImageAlt: "Highlighted Assembly",
+			Description: htmlTemplate.HTML(`<p>Why don't we have <b>good syntax highlighting for assembly</b>?</p>
+								<p>We use syntax highlighting in many higher-level
+								languages daily, to make it easier to <b>quickly scan</b> and <b>follow code flow</b>. It's time to bring disassemblers
+								up to speed with modern, 80s technology. Register motion matters, when things go wrong, <b>a little color
+								helps you figure out what happened, <i>fast</i></b>.</p>`),
+		},
+		{
+			Title:    "History Matters",
+			Icon:     "fa-solid fa-clock-rotate-left",
+			Image:    "media/history.png",
+			ImageAlt: "Highlighted Emulator State",
+			Description: htmlTemplate.HTML(`<p>When dissecting real catastrophes, inspectors build out a timeline and attempt to <b>retrace footsteps</b>.
+								Debugging code should work the same way.</p>
+								<p><b>Track</b> how your program changes registers and memory
+								as it runs, <b>save all your syscalls</b>, and <b>replay your code</b> exactly the way it failed,
+								so you can reliably <b>walk backwards</b> from the problem to find the cause.</p>`),
+		},
+		{
+			Title:    "Data Has A Shape",
+			Icon:     "fa-solid fa-shapes",
+			Image:    "media/striations.png",
+			ImageAlt: "Binary as Image",
+			Description: htmlTemplate.HTML(`<p><b>Real data has striations, character, and personality.</b> Really understanding a problem might require <b>a
+								new way of looking</b> at your code or your dataset. </p>
+								<p>We provide the tools to <b>visualize your problem</b>
+								in a handful of new, unique ways, to help you <b>build strong intuition</b> about your problems. This is a real
+								ELF binary with large static tables of content, plainly visible when displayed
+								as a greyscale image.</p>`),
+		},
+	}
+
+	data := HomeData{
+		Projects:  futureProjects,
+		BlogPosts: rssEntries,
+	}
+
+	bin_name := fmt.Sprintf("%sindex.html", bin2_dir)
+	f, err := os.Create(bin_name)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer f.Close()
+	err = tmpl.Execute(f, data)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func generate_redirect(bin_name string, to string) {
@@ -76,12 +183,12 @@ func generate_redirect(bin_name string, to string) {
 	f.WriteString(redirect_str)
 }
 
-func generate_posts(entries []BlogEntry, html_templpath string) {
+func generate_posts(entries []BlogEntry, templ SiteTemplate) {
 	funcMap := textTemplate.FuncMap{
 		"generateSlug": generate_slug,
 	}
 
-	tmpl, err := htmlTemplate.New(blog_post_template_name).Funcs(funcMap).ParseFiles(html_templpath)
+	tmpl, err := htmlTemplate.New(blog_post_template_name).Funcs(funcMap).ParseFiles(templ.Path)
 	if err != nil {
 		panic(err)
 	}
@@ -119,8 +226,8 @@ func generate_posts(entries []BlogEntry, html_templpath string) {
 	}
 }
 
-func generate_rss(entries []BlogEntry, rss_templpath string) {
-	tmpl, err := textTemplate.ParseFiles(rss_templpath)
+func generate_rss(entries []BlogEntry, templ SiteTemplate) {
+	tmpl, err := textTemplate.ParseFiles(templ.Path)
 	if err != nil {
 		panic(err)
 	}
@@ -157,7 +264,7 @@ func process_blog_posts() []BlogEntry {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
+
 	mds := make([]BlogEntry, 0)
 	for _, file := range files {
 		if strings.HasSuffix(file.Name(), ".blg") {
@@ -216,7 +323,7 @@ func process_blog_posts() []BlogEntry {
 			mds = append(mds, md)
 		}
 	}
-	
+
 	return mds
 }
 
@@ -226,40 +333,52 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	
-	var blog_post_template_file fs.FileInfo = nil
-	var rss_template_file fs.FileInfo = nil
+
+	template_files := SiteTemplates{}
 	for _, file := range templates {
-		switch file.Name() {
+		var templ *SiteTemplate
+		name := file.Name()
+		switch name {
+		case index_template_name:
+			templ = &template_files.Index
 		case blog_post_template_name:
-			blog_post_template_file = file
+			templ = &template_files.BlogPost
 		case rss_template_name:
-			rss_template_file = file
+			templ = &template_files.RSS
+		}
+
+		if templ != nil {
+			templ.File = file
+			templ.Path = fmt.Sprintf("%s%s", templates_dir, name)
 		}
 	}
-	
-	if blog_post_template_file == nil {
-		log.Fatal("Couldn't find blog-post template!\n")
+
+	if template_files.Index.File == nil {
+		log.Fatal("Couldn't find index template!\n")
 	}
-	if rss_template_file == nil {
+	if template_files.BlogPost.File == nil {
+		log.Fatal("Couldn't find blog_post template!\n")
+	}
+	if template_files.RSS.File == nil {
 		log.Fatal("Couldn't find rss template!\n")
 	}
-	
-	blog_post_templpath := fmt.Sprintf("%s%s", templates_dir, blog_post_template_file.Name())
-	rss_templpath := fmt.Sprintf("%s%s", templates_dir, rss_template_file.Name())
-	
+
 	// Process blog posts
 	mds := process_blog_posts()
 
 	_ = os.RemoveAll(bin_dir)
 	_ = os.Mkdir(bin_dir, os.ModePerm)
 
+	_ = os.RemoveAll(bin2_dir)
+	_ = os.Mkdir(bin2_dir, os.ModePerm)
+
 	sort.SliceStable(mds, func(i, j int) bool {
 		return mds[i].Date.After(mds[j].Date)
 	})
 
-	generate_posts(mds, blog_post_templpath)
-	generate_rss(mds, rss_templpath)
+	generate_pages(mds, template_files.Index)
+	generate_posts(mds, template_files.BlogPost)
+	generate_rss(mds, template_files.RSS)
 
 	fmt.Printf("site generated\n")
 }

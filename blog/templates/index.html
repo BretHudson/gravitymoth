@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="color-scheme" content="light dark">
+		<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, shrink-to-fit=no">
+		<meta name="theme-color" content="#0083B7">
+		<meta name="description" content="Gravity Moth Home">
+
+		<link rel="stylesheet" href="style.css">
+		<link rel="shortcut icon" type="image/png" href="media/favicon.png">
+		<link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Fira+Sans&family=Fira+Code&family=Montserrat&display=swap" rel="stylesheet">
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/brands.min.js"></script>
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/fontawesome.min.js"></script>
+		<script defer src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/js/solid.min.js"></script>
+		<link rel="alternate" type="application/rss+xml" title="RSS Feed for GravityMoth Blog" href="https://gravitymoth.com/blog/feed.xml" />
+
+		<meta property="og:type"        content="website" />
+		<meta property="og:site_name"   content="Gravity Moth" />
+		<meta property="og:title"       content="Gravity Moth" />
+		<meta property="og:description" content="Debug and Viz Tools" />
+		<meta property="og:url"         content="https://gravitymoth.com" />
+		<meta property="og:image"       content="https://gravitymoth.com/media/logo_bg.png" />
+
+		<script src="index.js"></script>
+
+		<title>Gravity Moth</title>
+	</head>
+	<body class="layout-three-column">
+		<header col-full>
+			<nav>
+				<a class="nav-link top" href="./">Gravity Moth</a>
+				<div class="nav-entries">
+					<a class="nav-link entry" href="spall">Spall</a>
+					<a class="nav-link entry" href="blog">Blog</a>
+					<button class="nav-link menu" onClick="toggleMenu();">
+						<i class="fa fa-bars" aria-hidden="true"></i>
+					</button>
+				</div>
+			</nav>
+			<div id="dropdown-menu">
+				<a class="dropdown entry" href="spall">Spall</a>
+				<a class="dropdown entry" href="blog">Blog</a>
+			</div>
+			<!-- <div class="banner">
+				<section id="banner-header">
+					<img src="media/logo.svg" alt="Gravity Moth Logo" />
+					<h1 class="announce">Gravity Moth</h1>
+				</section>
+			</div> -->
+		</header>
+		<main col-full>
+			<div class="banner" col-full sub-grid>
+				<div class="banner-content">
+					<div>
+						<h2>We build tools to empower developers</h2>
+						<p>The closer you go to the hardware, the more likely you are to need to be able to read and parse large amounts of data. There's no reason it should be obscure.</p>
+					</div>
+					<div class="big">
+						<div>
+							<!-- TODO(bret): Make this SVG inline so we can edit its color -->
+							<img src="media/logo.svg" alt="Gravity Moth Logo" />
+							<h1 class="announce" style="font-size: 2rem">Gravity Moth</h1>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="root main">
+				<section id="content">
+					<div class="latest-projects">
+						<div style="grid-column: 1 / span 2">
+							<h2>Featured Tool</h2>
+							<div class="tool-preview">
+								<a href="spall/"><h3>Spall</h3></a>
+								<img src="media/odin-landscape.png" alt="Spall Landscape">
+								<!-- TODO(bret): copy here - which languages does it work for? Is it language-agnostic? what is required? do we need to say "Spall" again? -->
+								<p>Profile and explore your code, designed to help you sift through billions of events</p>
+								<div class="button-row">
+									<a href="spall/spall-web">
+										<button><i class="fa-solid fa-window-maximize"></i> Use in Browser</button>
+									</a>
+									<a href="https://gravitymoth.itch.io/spall">
+										<button><i class="fa-brands fa-itch-io"></i> Buy Spall Native</button>
+									</a>
+									<div class="button-row">
+										<a href="https://discord.gg/MkAPHSWPZZ"><i class="fa-brands fa-discord"></i></a>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div>
+							<h2>Latest Articles</h2>
+							<div class="tool-preview">{{range $entry := .BlogPosts}}
+								<div>
+									<h3><a href="{{$entry.Slug}}">{{$entry.Title}}</a></h3>
+									<h4>{{$entry.PubDate}}</h4>
+								</div>{{end}}
+							</div>
+							<a href="http://gravitymoth.localhost/blog">Read more</a>
+						</div>
+					</div>
+					
+					<br />
+				</section>
+			</div>
+			<section class="rest layout-three-column" col-full>
+				<div id="future-projects">
+					<h2>Future Projects - Sneak Peek</h2>{{range $entry := .Projects}}
+					<div class="content-highlight">
+						<div class="side-by-side">
+							<div class="image">
+								<img src="{{$entry.Image}}" alt="{{$entry.ImageAlt}}">
+							</div>
+							<h3>
+								<i class="{{$entry.Icon}}"></i>
+								{{$entry.Title}}
+							</h3>
+							<div class="description">
+								{{$entry.Description}}
+							</div>
+						</div>
+					</div>{{end}}
+				</div>
+			</section>
+		</main>
+		<footer col-full>
+			<div>&copy; 2025 Gravity Moth</div>
+		</footer>
+	</body>
+</html>
