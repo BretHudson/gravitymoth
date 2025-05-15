@@ -1329,7 +1329,7 @@ td {
 
 .tool-preview > img {
 	margin-bottom: 1rem;
-	aspect-ratio: 16 / 9;
+	aspect-ratio: 16 / 3;
 	object-fit: cover;
 	border-radius: .5rem;
 }
@@ -1339,6 +1339,7 @@ td {
 	margin-right: auto;
 	/* margin-top: 0.5em; */
 	padding-bottom: 0em;
+	text-wrap: pretty;
 }
 
 .tool-preview :is(.button-row, .button-column) {
